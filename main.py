@@ -14,9 +14,13 @@ HEIGHT = 768
 CELL_SIZE = 32
 
 N_PATHFINDERS = 5
-N_VILLAGES = 10
+N_VILLAGES = 12
 
-REGROW_RATE = 1000  # ms
+# in milliseconds
+TREE_REGROW_RATE = 1000
+GRASS_REGROW_RATE = 500
+
+NEW_TREE_PROB = 0.01
 
 if N_VILLAGES < 2:
     print('You need at least 2 villages')
@@ -54,6 +58,17 @@ forest_sprites = [
     forest_5, forest_6, forest_7, forest_8
 ]
 
+world_x = int(WIDTH / CELL_SIZE)
+world_y = int(HEIGHT / CELL_SIZE)
+tile_dist = ['grass', 'forest']
+
+base_values = {
+    'grass': 0,
+    'village': 0,
+    'forest': 50,
+}
+
+
 class Tile:
     def __init__(self, kind):
         self.kind = kind
@@ -68,24 +83,13 @@ class Tile:
             self.durability = 1
 
 
-world_x = int(WIDTH / CELL_SIZE)
-world_y = int(HEIGHT / CELL_SIZE)
-tile_dist = ['grass', 'forest']
-
-world = [[Tile(choice(tile_dist)) for iy in range(world_y)] for ix in range(world_x)]
-
-base_values = {
-    'grass': 0,
-    'village': 0,
-    'forest': 50,
-}
-
 class PathCell:
     def __init__(self, kind, durability, pos=None):
         self.val = base_values[kind] + durability
         self.count = None
         self.path_from = None
         self.pos = pos
+
 
 class Pathfinder:
     def __init__(self, world, villages):
@@ -142,13 +146,6 @@ def draw_map():
         for x in range(world_x):
             win.blit(world[x][y].sprite, (x*CELL_SIZE, y*CELL_SIZE))
 
-villages = [(randint(0, world_x-1), randint(0, world_y-1)) for _ in range(N_VILLAGES)]
-pathfinders = [Pathfinder(world, villages) for _ in range(N_PATHFINDERS)]
-
-for v in villages:
-    world[v[0]][v[1]].kind = 'village'
-    world[v[0]][v[1]].sprite = village
-
 def is_valid(pos):
     return pos[0] >= 0 and pos[1] >= 0 and pos[0] < world_x and pos[1] < world_y
 
@@ -194,7 +191,17 @@ def find_path(start, end, world):
 app_running = True
 clock = pygame.time.Clock()
 
-last_regrow = 0
+world = [[Tile(choice(tile_dist)) for iy in range(world_y)] for ix in range(world_x)]
+
+villages = [(randint(0, world_x-1), randint(0, world_y-1)) for _ in range(N_VILLAGES)]
+pathfinders = [Pathfinder(world, villages) for _ in range(N_PATHFINDERS)]
+
+for v in villages:
+    world[v[0]][v[1]].kind = 'village'
+    world[v[0]][v[1]].sprite = village
+
+last_tree_regrow = 0
+last_grass_regrow = 0
 
 while app_running:
     clock.tick(60)
@@ -216,23 +223,29 @@ while app_running:
 
         win.blit(p.sprite, (p.x*CELL_SIZE, p.y*CELL_SIZE))
 
-    if pygame.time.get_ticks() - last_regrow > REGROW_RATE:
-        for _ in range(1):
-            x = randint(0, world_x - 1)
-            y = randint(0, world_y - 1)
-            if world[x][y].kind == 'forest':
-                d = min(8, world[x][y].durability + 1)
-                world[x][y].durability = d
-                world[x][y].sprite = forest_sprites[d - 1]
-            elif world[x][y].kind == 'grass':
-                d = min(8, world[x][y].durability + 1)
-                if d == 8 and random() < .05:
+    if pygame.time.get_ticks() - last_tree_regrow > TREE_REGROW_RATE:
+        x = randint(0, world_x - 1)
+        y = randint(0, world_y - 1)
+        if world[x][y].kind == 'forest':
+            d = min(8, world[x][y].durability + 1)
+            world[x][y].durability = d
+            world[x][y].sprite = forest_sprites[d - 1]
+        elif world[x][y].kind == 'grass':
+            if world[x][y].durability == 8:
+                if random() < NEW_TREE_PROB:
                     world[x][y].durability = 1
                     world[x][y].sprite = forest_sprites[0]
                     world[x][y].kind = 'forest'
-                else:
-                    world[x][y].durability = d
-                    world[x][y].sprite = path_sprites[d - 1]
+
+    if pygame.time.get_ticks() - last_grass_regrow > GRASS_REGROW_RATE:
+        while True:
+            x = randint(0, world_x - 1)
+            y = randint(0, world_y - 1)
+            if world[x][y].kind == 'grass':
+                d = min(8, world[x][y].durability + 1)
+                world[x][y].durability = d
+                world[x][y].sprite = path_sprites[d - 1]
+                break
         
         last_regrow = pygame.time.get_ticks()
 
