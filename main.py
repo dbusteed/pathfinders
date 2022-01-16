@@ -204,7 +204,6 @@ for v in villages:
 last_tree_regrow = 0
 last_grass_regrow = 0
 
-input()
 
 while app_running:
     clock.tick(60)
