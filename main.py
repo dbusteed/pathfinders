@@ -9,12 +9,15 @@ from sys import exit
 
 pygame.init()
 
-WIDTH = 1280
-HEIGHT = 768
-CELL_SIZE = 32
+world_x = 30
+world_y = 20
 
-N_PATHFINDERS = 5
-N_VILLAGES = 12
+CELL_SIZE = 32
+WIDTH = world_x * CELL_SIZE
+HEIGHT = world_y * CELL_SIZE
+
+N_PATHFINDERS = 8
+N_VILLAGES = 10
 
 # in milliseconds
 TREE_REGROW_RATE = 1000
@@ -58,9 +61,7 @@ forest_sprites = [
     forest_5, forest_6, forest_7, forest_8
 ]
 
-world_x = int(WIDTH / CELL_SIZE)
-world_y = int(HEIGHT / CELL_SIZE)
-tile_dist = ['grass', 'forest']
+tile_dist = ['grass', 'grass', 'grass', 'forest', 'forest']
 
 base_values = {
     'grass': 0,
@@ -203,6 +204,8 @@ for v in villages:
 last_tree_regrow = 0
 last_grass_regrow = 0
 
+input()
+
 while app_running:
     clock.tick(60)
      
@@ -214,8 +217,10 @@ while app_running:
 
         # elif event.type == pygame.MOUSEBUTTONDOWN:
         #     if event.button == 1:
-        #         click_x = event.pos[0] // CELL_SIZE
-        #         click_y = event.pos[1] // CELL_SIZE
+        #         x = event.pos[0] // CELL_SIZE
+        #         y = event.pos[1] // CELL_SIZE
+        #         if world[x][y].kind == 'grass':
+        #             world[x][y] = Tile('forest')
 
     for p in pathfinders:
         if pygame.time.get_ticks() - p.last_move > p.speed:
