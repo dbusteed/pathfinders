@@ -162,6 +162,25 @@ class World:
         self.last_grass_regrow = pygame.time.get_ticks()
 
 
+    def swap_tile(self, pos, kind):
+        self.map[pos].durability = 17
+
+        if kind == 'forest':
+            self.map[pos].kind = 'forest'
+            self.map[pos].image = self.forest_sprites[17][self.bitmask(*pos, 'is_forest')]
+            for npos in [(pos[0] + _x, pos[1] + _y) for _x, _y in neighbors8]:
+                if self.is_forest(npos):
+                    self.map[npos].image = self.forest_sprites[self.map[npos].durability][self.bitmask(*npos, 'is_forest')]
+        elif kind == 'grass':
+            self.map[pos].kind = 'grass'
+            self.map[pos].image = self.grass_sprite
+            for npos in [(pos[0] + _x, pos[1] + _y) for _x, _y in neighbors8]:
+                if self.is_forest(npos):
+                    self.map[npos].image = self.forest_sprites[self.map[npos].durability][self.bitmask(*npos, 'is_forest')]
+                if self.is_path(npos) and self.map[npos].kind != 'village':
+                    self.map[npos].image = self.path_sprites[self.map[npos].durability][self.bitmask(*npos, 'is_path')]
+
+
     def run(self):
         self.visible_sprites.draw(self.display_surface)
         self.visible_sprites.update()

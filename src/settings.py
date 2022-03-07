@@ -7,10 +7,10 @@ HEIGHT = WORLD_Y * TILESIZE
 
 FPS = 20
 
-n_tree_pct = 0.5
+n_tree_pct = 0.65
 N_TREES = int(WORLD_X * WORLD_Y * n_tree_pct)
 
-N_PATHFINDERS = 8
+N_PATHFINDERS = 5
 N_VILLAGES = 10
 
 GRASS_REGROW_RATE = 1000 # ms
